@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -31,6 +32,8 @@ func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Title:       req.Title,
 		Description: req.Description,
 		Status:      req.Status,
+		ScheduledAt: req.ScheduledAt,
+		Recurrence:  req.Recurrence.toDomain(),
 	})
 	if err != nil {
 		writeUsecaseError(w, err)
@@ -73,6 +76,8 @@ func (h *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Title:       req.Title,
 		Description: req.Description,
 		Status:      req.Status,
+		ScheduledAt: req.ScheduledAt,
+		Recurrence:  req.Recurrence.toDomain(),
 	})
 	if err != nil {
 		writeUsecaseError(w, err)
@@ -98,7 +103,11 @@ func (h *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.usecase.List(r.Context())
+	includeTemplates := parseBoolQuery(r, "include_templates")
+
+	tasks, err := h.usecase.List(r.Context(), taskusecase.ListOptions{
+		IncludeTemplates: includeTemplates,
+	})
 	if err != nil {
 		writeUsecaseError(w, err)
 		return
@@ -110,6 +119,20 @@ func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, response)
+}
+
+func parseBoolQuery(r *http.Request, key string) bool {
+	value := strings.TrimSpace(r.URL.Query().Get(key))
+	if value == "" {
+		return false
+	}
+
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return false
+	}
+
+	return parsed
 }
 
 func getIDFromRequest(r *http.Request) (int64, error) {
@@ -145,7 +168,7 @@ func writeUsecaseError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, taskdomain.ErrNotFound):
 		writeError(w, http.StatusNotFound, err)
-	case errors.Is(err, taskusecase.ErrInvalidInput):
+	case errors.Is(err, taskusecase.ErrInvalidInput), errors.Is(err, taskusecase.ErrRecurrenceUpdate):
 		writeError(w, http.StatusBadRequest, err)
 	default:
 		writeError(w, http.StatusInternalServerError, err)
