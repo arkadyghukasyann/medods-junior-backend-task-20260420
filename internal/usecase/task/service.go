@@ -228,7 +228,7 @@ func (s *Service) syncTemplateOccurrences(ctx context.Context, task *taskdomain.
 			SeriesRootID: task.ID,
 			Title:        task.Title,
 			Description:  task.Description,
-			Status:       taskdomain.StatusNew,
+			Status:       task.Status,
 			ScheduledAt:  occurrence,
 			IsTemplate:   false,
 			CreatedAt:    now,

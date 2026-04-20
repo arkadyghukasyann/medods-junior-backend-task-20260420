@@ -87,7 +87,7 @@ func (r *Repository) CreateOccurrences(ctx context.Context, tasks []taskdomain.T
 				updated_at
 			)
 			VALUES ($1, FALSE, $2, $3, $4, $5, $6, $7, $8)
-			ON CONFLICT (series_root_id, occurrence_on) DO NOTHING
+			ON CONFLICT (series_root_id, occurrence_on) WHERE is_template = FALSE DO NOTHING
 		`,
 			task.SeriesRootID,
 			task.Title,

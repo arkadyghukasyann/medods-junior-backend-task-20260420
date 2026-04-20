@@ -134,6 +134,38 @@ func TestCreateRecurringTemplateMaterializesOnlyWindowOccurrences(t *testing.T) 
 	}
 }
 
+func TestCreateRecurringTemplatePropagatesStatusToOccurrences(t *testing.T) {
+	repo := newStubRepository()
+	service := NewService(repo)
+	service.now = func() time.Time {
+		return time.Date(2026, 4, 20, 9, 0, 0, 0, time.UTC)
+	}
+
+	_, err := service.Create(context.Background(), CreateInput{
+		Title:       "Call patients",
+		Description: "Daily follow-up",
+		Status:      taskdomain.StatusInProgress,
+		ScheduledAt: time.Date(2026, 4, 21, 10, 0, 0, 0, time.UTC),
+		Recurrence: &taskdomain.Recurrence{
+			Type:       taskdomain.RecurrenceDaily,
+			EveryNDays: 2,
+		},
+	})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+
+	if len(repo.createdOccurrences) == 0 {
+		t.Fatal("expected generated occurrences")
+	}
+
+	for _, occurrence := range repo.createdOccurrences {
+		if occurrence.Status != taskdomain.StatusInProgress {
+			t.Fatalf("expected propagated status %q, got %q", taskdomain.StatusInProgress, occurrence.Status)
+		}
+	}
+}
+
 func TestUpdateRejectsRecurrenceChangeForGeneratedOccurrence(t *testing.T) {
 	repo := newStubRepository()
 	repo.tasks[10] = &taskdomain.Task{
