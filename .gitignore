@@ -1,2 +1,4 @@
 .ruby-lsp
 .runtime/
+.netlify/
+node_modules/

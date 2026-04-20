@@ -1,0 +1,25 @@
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/swagger/*"
+  to = "/.netlify/functions/api"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/swagger"
+  to = "/.netlify/functions/api"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/"
+  to = "/swagger/"
+  status = 302

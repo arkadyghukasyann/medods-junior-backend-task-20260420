@@ -1,0 +1,4 @@
+.git
+.runtime
+.netlify
+node_modules

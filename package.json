@@ -1,0 +1,7 @@
+{
+  "name": "medods-junior-backend-task",
+  "private": true,
+  "dependencies": {
+    "@netlify/neon": "^0.1.2"
+  }
+}
